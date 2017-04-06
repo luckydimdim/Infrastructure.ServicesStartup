@@ -27,7 +27,7 @@ namespace Cmas.Infrastructure.ServicesStartup
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
         {
-            // Perform registration that should have an application lifetime
+            base.ConfigureApplicationContainer(existingContainer);
         }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)

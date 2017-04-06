@@ -15,6 +15,8 @@ using Microsoft.Extensions.Logging;
 using Nancy.Owin;
 using NLog.Extensions.Logging;
 using NLog.Web;
+using Newtonsoft.Json;
+using Cmas.Infrastructure.ServicesStartup.Serialization;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -93,6 +95,8 @@ namespace Cmas.Infrastructure.ServicesStartup
             builder.RegisterType<LoggerFactory>().As<ILoggerFactory>();
 
             builder.Register(sp => _mapperConfiguration.CreateMapper()).As<IMapper>().SingleInstance();
+
+            builder.RegisterType<CustomJsonSerializer>().As<JsonSerializer>();
              
             builder.Populate(services);
 
