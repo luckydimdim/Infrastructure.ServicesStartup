@@ -136,7 +136,7 @@ namespace Cmas.Infrastructure.ServicesStartup
         /// <param name="logger"></param>
         protected void ApplicationStarted()
         {
-            _logger.LogInformation("ApplicationStarted");
+            _logger.LogInformation("Application started");
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Cmas.Infrastructure.ServicesStartup
         /// <param name="logger"></param>
         protected void ApplicationStopping()
         {
-            _logger.LogInformation("ApplicationStopping");
+            _logger.LogInformation("Application stopping...");
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace Cmas.Infrastructure.ServicesStartup
         /// <param name="logger"></param>
         protected void ApplicationStopped()
         {
-            _logger.LogInformation("ApplicationStopped");
+            _logger.LogInformation("Application stopped");
         }
     }
 }
