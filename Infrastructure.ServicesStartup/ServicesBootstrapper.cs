@@ -6,17 +6,21 @@ using Microsoft.Extensions.Logging;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
+using Nancy.Extensions;
 using Nancy.Responses.Negotiation;
+using Nancy.IO;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
     internal class ServicesBootstrapper : AutofacNancyBootstrapper
     {
         private readonly IServiceProvider _serviceProvider = null;
+        private readonly ILogger _logger = null;
 
-        public ServicesBootstrapper(IServiceProvider serviceProvider)
+        public ServicesBootstrapper(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
         {
             _serviceProvider = serviceProvider;
+            _logger = loggerFactory.CreateLogger<ServicesBootstrapper>();
         }
 
         protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
@@ -49,8 +53,19 @@ namespace Cmas.Infrastructure.ServicesStartup
                     .WithHeader("Access-Control-Allow-Origin", "*")
                     .WithHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE")
                     .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type");
+            });
 
-            });            
+            //logging
+            pipelines.BeforeRequest.AddItemToEndOfPipeline(ctx =>
+            {
+                _logger.LogInformation(LoggingHelper.RequestToString(ctx.Request));
+                return null;
+            });
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>
+            {
+                _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
+            });
         }
 
         protected override ILifetimeScope GetApplicationContainer()
@@ -62,9 +77,10 @@ namespace Cmas.Infrastructure.ServicesStartup
         {
             get
             {
-                return NancyInternalConfiguration.WithOverrides(config => {
-                    config.StatusCodeHandlers = new[] { typeof(StatusCodeHandler404), typeof(StatusCodeHandler500) };
-                    config.ResponseProcessors = new[] { typeof(JsonProcessor) };
+                return NancyInternalConfiguration.WithOverrides(config =>
+                {
+                    config.StatusCodeHandlers = new[] {typeof(StatusCodeHandler404), typeof(StatusCodeHandler500)};
+                    config.ResponseProcessors = new[] {typeof(JsonProcessor)};
                 });
             }
         }

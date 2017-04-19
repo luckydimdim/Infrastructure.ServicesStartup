@@ -119,7 +119,7 @@ namespace Cmas.Infrastructure.ServicesStartup
 
             app.UseOwin(x => x.UseNancy(options =>
             {
-                options.Bootstrapper = new ServicesBootstrapper(app.ApplicationServices);
+                options.Bootstrapper = new ServicesBootstrapper(app.ApplicationServices, loggerFactory);
             }));
 
             _logger = loggerFactory.CreateLogger<ServicesStartup>();
