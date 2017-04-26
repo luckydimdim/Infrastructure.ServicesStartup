@@ -9,6 +9,8 @@ using Nancy.Bootstrappers.Autofac;
 using Nancy.Extensions;
 using Nancy.Responses.Negotiation;
 using Nancy.IO;
+using Nancy.Authentication.Stateless;
+using Cmas.Infrastructure.Security;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -45,6 +47,20 @@ namespace Cmas.Infrastructure.ServicesStartup
             // resolve things that are needed during request startup.
             var handler = new ErrorHandler.Web.ErrorHandler(container.Resolve<ILoggerFactory>());
             handler.Enable(pipelines, container.Resolve<IResponseNegotiator>());
+
+            // Auth
+
+            var statelessAuthConfiguration =
+                new StatelessAuthenticationConfiguration(ctx =>
+                {
+                    var jwtToken = ctx.Request.Headers.Authorization;
+
+                    var userValidator =  container.Resolve<IUserApiMapper>();
+
+                    return userValidator.GetUserFromAccessToken(jwtToken);
+                });
+
+            StatelessAuthentication.Enable(pipelines, statelessAuthConfiguration);
 
             //CORS Enable
             pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>

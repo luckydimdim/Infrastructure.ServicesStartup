@@ -17,6 +17,7 @@ using NLog.Extensions.Logging;
 using NLog.Web;
 using Newtonsoft.Json;
 using Cmas.Infrastructure.ServicesStartup.Serialization;
+using Cmas.Infrastructure.Security;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -32,11 +33,7 @@ namespace Cmas.Infrastructure.ServicesStartup
 
             _cmasAssemblies = GetReferencingAssemblies("Cmas");
 
-            _mapperConfiguration = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfiles(_cmasAssemblies);
-            });
-
+            _mapperConfiguration = new MapperConfiguration(cfg => { cfg.AddProfiles(_cmasAssemblies); });
         }
 
         public static IEnumerable<Assembly> GetReferencingAssemblies(string assemblyName)
@@ -57,65 +54,70 @@ namespace Cmas.Infrastructure.ServicesStartup
         private static bool IsCandidateLibrary(RuntimeLibrary library, string assemblyName)
         {
             return library.Name == (assemblyName)
-                || library.Dependencies.Any(d => d.Name.StartsWith(assemblyName));
+                   || library.Dependencies.Any(d => d.Name.StartsWith(assemblyName));
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             var builder = new ContainerBuilder();
-             
+
             foreach (var assembly in _cmasAssemblies)
             {
-                var t = assembly.DefinedTypes;
+                builder
+                    .RegisterAssemblyTypes(assembly)
+                    .AsClosedTypesOf(typeof(ICommand<>));
 
                 builder
-                 .RegisterAssemblyTypes(assembly)
-                 .AsClosedTypesOf(typeof(ICommand<>));
+                    .RegisterAssemblyTypes(assembly)
+                    .AsClosedTypesOf(typeof(IQuery<,>));
 
                 builder
-                 .RegisterAssemblyTypes(assembly)
-                 .AsClosedTypesOf(typeof(IQuery<,>));
+                    .RegisterAssemblyTypes(assembly)
+                    .AssignableTo<IUserApiMapper>()
+                    .AsImplementedInterfaces();
             }
-             
+
             builder.RegisterType<CommandBuilder>().As<ICommandBuilder>();
             builder.RegisterType<QueryBuilder>().As<IQueryBuilder>();
             builder.RegisterType<QueryFactory>().As<IQueryFactory>();
 
             builder.RegisterGeneric(typeof(QueryFor<>)).As(typeof(IQueryFor<>));
-  
+            
             builder.Register<Func<Type, object>>(c =>
             {
                 var componentContext = c.Resolve<IComponentContext>();
-                return (t) => {
-                    return componentContext.Resolve(t);
-                };
+                return (t) => { return componentContext.Resolve(t); };
             });
 
-
+            
             builder.RegisterType<LoggerFactory>().As<ILoggerFactory>();
 
             builder.Register(sp => _mapperConfiguration.CreateMapper()).As<IMapper>().SingleInstance();
 
             builder.RegisterType<CustomJsonSerializer>().As<JsonSerializer>();
-             
+            
             builder.Populate(services);
 
             var container = builder.Build();
-            
+
             return container.Resolve<IServiceProvider>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
+            IApplicationLifetime applicationLifetime)
         {
-            env.EnvironmentName = "Production";    // TODO: настроить конфигурацию и использование EnvironmentName.Production;
+            env.EnvironmentName =
+                "Production"; // TODO: настроить конфигурацию и использование EnvironmentName.Production;
 
             loggerFactory.AddNLog();
             app.AddNLogWeb();
-            
+
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
             else
-                app.UseExceptionHandler("/error");  // TODO: Настроить страницу, на которую надо кидать в случае 500х ошибок
+                app
+                    .UseExceptionHandler(
+                        "/error"); // TODO: Настроить страницу, на которую надо кидать в случае 500х ошибок
 
             app.UseOwin(x => x.UseNancy(options =>
             {
@@ -127,7 +129,6 @@ namespace Cmas.Infrastructure.ServicesStartup
             applicationLifetime.ApplicationStarted.Register(ApplicationStarted);
             applicationLifetime.ApplicationStopping.Register(ApplicationStopping);
             applicationLifetime.ApplicationStopped.Register(ApplicationStopped);
-
         }
 
         /// <summary>

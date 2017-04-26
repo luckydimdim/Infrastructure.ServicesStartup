@@ -23,8 +23,10 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.0.0" />
     <PackageReference Include="Cmas.Infrastructure.Domain" Version="*" />
     <PackageReference Include="Cmas.Infrastructure.ErrorHandler" Version="*" />
+    <PackageReference Include="Cmas.Infrastructure.Security" Version="*" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Server.IISIntegration" Version="1.1.1" />
+    <PackageReference Include="Nancy.Authentication.Stateless" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Serialization.JsonNet" Version="2.0.0-clinteastwood" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="4.3.1" />
