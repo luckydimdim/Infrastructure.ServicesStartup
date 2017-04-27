@@ -6,6 +6,7 @@ using Nancy.Extensions;
 using Nancy.IO;
 using System.IO;
 using Nancy.Responses;
+using System.Text.RegularExpressions;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -43,7 +44,15 @@ namespace Cmas.Infrastructure.ServicesStartup
 
         private static string BodyToString(Stream stream)
         {
-            return "\t" + (stream as RequestStream).AsString();
+            var input = (stream as RequestStream).AsString();
+
+            string pattern = "\"password\"[\\s]*:[\\s]*\".*\"";
+            string replacement = "\"password\": \"********\"";
+            Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
+
+            string result = rgx.Replace(input, replacement);
+
+            return "\t" + result;
         }
 
         /*private static string ContentsToString(Action<Stream> actionStream)
@@ -52,7 +61,7 @@ namespace Cmas.Infrastructure.ServicesStartup
             actionStream(stream);
             return "\t" + (stream as MemoryStream).AsString();
         } */
-       
+
         private static string UrlToString(Request request)
         {
             return string.Format("{0} {1} {2}", request.Method, request.Url,
@@ -85,14 +94,14 @@ namespace Cmas.Infrastructure.ServicesStartup
         {
             if (response == null)
                 return string.Empty;
-             
+
             try
             {
                 var statusCode = response.StatusCode.ToString();
 
                 var headers = HeadersToString(response.Headers);
-                 
-               // var body = ContentsToString(response.Contents);   TODO: выводить тело
+
+                // var body = ContentsToString(response.Contents);   TODO: выводить тело
 
                 return string.Format("\nResponse: {0}\nHeaders:\n{1}", statusCode, headers);
             }
