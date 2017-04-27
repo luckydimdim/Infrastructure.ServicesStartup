@@ -55,12 +55,23 @@ namespace Cmas.Infrastructure.ServicesStartup
             return "\t" + result;
         }
 
-        /*private static string ContentsToString(Action<Stream> actionStream)
+        private static string ContentsToString(Action<Stream> actionStream)
         {
-            Stream stream = new MemoryStream();
-            actionStream(stream);
-            return "\t" + (stream as MemoryStream).AsString();
-        } */
+
+            string result = string.Empty;
+
+            using (MemoryStream memStream = new MemoryStream())
+            {
+                actionStream(memStream);
+
+                memStream.Position = 0;
+
+                var sr = new StreamReader(memStream);
+                result = sr.ReadToEnd();
+            }
+                 
+            return "\t" + result;
+        } 
 
         private static string UrlToString(Request request)
         {
@@ -101,9 +112,9 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                 var headers = HeadersToString(response.Headers);
 
-                // var body = ContentsToString(response.Contents);   TODO: выводить тело
+                var body = ContentsToString(response.Contents);
 
-                return string.Format("\nResponse: {0}\nHeaders:\n{1}", statusCode, headers);
+                return string.Format("\nResponse: {0}\nHeaders:\n{1}Body:\n{2}", statusCode, headers, body);
             }
             catch (Exception)
             {
