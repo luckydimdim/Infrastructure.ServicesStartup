@@ -55,7 +55,7 @@ namespace Cmas.Infrastructure.ServicesStartup
                 {
                     var jwtToken = ctx.Request.Headers.Authorization;
 
-                    var userValidator =  container.Resolve<IUserApiMapper>();
+                    var userValidator = container.Resolve<IUserApiMapper>();
 
                     return userValidator.GetUserFromAccessToken(jwtToken);
                 });
@@ -65,10 +65,7 @@ namespace Cmas.Infrastructure.ServicesStartup
             //CORS Enable
             pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>
             {
-                ctx.Response
-                    .WithHeader("Access-Control-Allow-Origin", "*")
-                    .WithHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE")
-                    .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type");
+                enableCORS(ctx.Response);
             });
 
             //logging
@@ -82,6 +79,23 @@ namespace Cmas.Infrastructure.ServicesStartup
             {
                 _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
             });
+
+            pipelines.OnError.AddItemToEndOfPipeline((ctx, exc) =>
+            {
+                enableCORS(ctx.Response);
+
+                _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
+
+                return ctx.Response;
+            });
+        }
+
+        protected void enableCORS(Response response)
+        {
+            response
+                .WithHeader("Access-Control-Allow-Origin", "*")
+                .WithHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE")
+                .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type, Authorization");
         }
 
         protected override ILifetimeScope GetApplicationContainer()

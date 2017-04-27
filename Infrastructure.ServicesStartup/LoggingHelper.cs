@@ -5,6 +5,7 @@ using Nancy;
 using Nancy.Extensions;
 using Nancy.IO;
 using System.IO;
+using Nancy.Responses;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -45,6 +46,13 @@ namespace Cmas.Infrastructure.ServicesStartup
             return "\t" + (stream as RequestStream).AsString();
         }
 
+        /*private static string ContentsToString(Action<Stream> actionStream)
+        {
+            Stream stream = new MemoryStream();
+            actionStream(stream);
+            return "\t" + (stream as MemoryStream).AsString();
+        } */
+       
         private static string UrlToString(Request request)
         {
             return string.Format("{0} {1} {2}", request.Method, request.Url,
@@ -83,6 +91,8 @@ namespace Cmas.Infrastructure.ServicesStartup
                 var statusCode = response.StatusCode.ToString();
 
                 var headers = HeadersToString(response.Headers);
+                 
+               // var body = ContentsToString(response.Contents);   TODO: выводить тело
 
                 return string.Format("\nResponse: {0}\nHeaders:\n{1}", statusCode, headers);
             }
