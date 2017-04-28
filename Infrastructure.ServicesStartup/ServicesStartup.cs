@@ -110,6 +110,8 @@ namespace Cmas.Infrastructure.ServicesStartup
                 "Production"; // TODO: настроить конфигурацию и использование EnvironmentName.Production;
 
             loggerFactory.AddNLog();
+            loggerFactory.AddConsole(LogLevel.Warning);
+
             app.AddNLogWeb();
 
             if (env.IsDevelopment())

@@ -62,24 +62,21 @@ namespace Cmas.Infrastructure.ServicesStartup
 
             StatelessAuthentication.Enable(pipelines, statelessAuthConfiguration);
 
-            //CORS Enable
+            // AfterRequest
             pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>
             {
                 enableCORS(ctx.Response);
+                _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
             });
 
-            //logging
+            // BeforeRequest
             pipelines.BeforeRequest.AddItemToEndOfPipeline(ctx =>
             {
                 _logger.LogInformation(LoggingHelper.RequestToString(ctx.Request));
                 return null;
             });
 
-            pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>
-            {
-                _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
-            });
-
+            // OnError
             pipelines.OnError.AddItemToEndOfPipeline((ctx, exc) =>
             {
                 enableCORS(ctx.Response);
@@ -90,7 +87,7 @@ namespace Cmas.Infrastructure.ServicesStartup
             });
         }
 
-        protected void enableCORS(Response response)
+        private void enableCORS(Response response)
         {
             response
                 .WithHeader("Access-Control-Allow-Origin", "*")
