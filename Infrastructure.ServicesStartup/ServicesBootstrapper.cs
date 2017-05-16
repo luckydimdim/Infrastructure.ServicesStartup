@@ -6,11 +6,10 @@ using Microsoft.Extensions.Logging;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
-using Nancy.Extensions;
 using Nancy.Responses.Negotiation;
-using Nancy.IO;
 using Nancy.Authentication.Stateless;
 using Cmas.Infrastructure.Security;
+using Cmas.Infrastructure.Configuration;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -18,10 +17,13 @@ namespace Cmas.Infrastructure.ServicesStartup
     {
         private readonly IServiceProvider _serviceProvider = null;
         private readonly ILogger _logger = null;
+        private readonly CmasConfiguration _configuration = null;
 
         public ServicesBootstrapper(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
         {
             _serviceProvider = serviceProvider;
+            _configuration = serviceProvider.GetConfiguration();
+             
             _logger = loggerFactory.CreateLogger<ServicesBootstrapper>();
         }
 
@@ -90,9 +92,9 @@ namespace Cmas.Infrastructure.ServicesStartup
         private void enableCORS(Response response)
         {
             response
-                .WithHeader("Access-Control-Allow-Origin", "*")
-                .WithHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE")
-                .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type, Authorization");
+                .WithHeader("Access-Control-Allow-Origin", _configuration.CORS.Origin)
+                .WithHeader("Access-Control-Allow-Methods", _configuration.CORS.Methods)
+                .WithHeader("Access-Control-Allow-Headers", _configuration.CORS.Headers);
         }
 
         protected override ILifetimeScope GetApplicationContainer()

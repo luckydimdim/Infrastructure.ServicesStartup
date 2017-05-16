@@ -17,7 +17,9 @@ using NLog.Extensions.Logging;
 using NLog.Web;
 using Newtonsoft.Json;
 using Cmas.Infrastructure.ServicesStartup.Serialization;
-using Cmas.Infrastructure.Security;
+using Cmas.Infrastructure.Security; 
+using Microsoft.Extensions.Configuration;
+using Cmas.Infrastructure.Configuration;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -26,6 +28,7 @@ namespace Cmas.Infrastructure.ServicesStartup
         private ILogger _logger;
         private MapperConfiguration _mapperConfiguration;
         private IEnumerable<Assembly> _cmasAssemblies;
+        public static IConfiguration Configuration { get; set; }
 
         public ServicesStartup(IHostingEnvironment env)
         {
@@ -34,6 +37,12 @@ namespace Cmas.Infrastructure.ServicesStartup
             _cmasAssemblies = GetReferencingAssemblies("Cmas");
 
             _mapperConfiguration = new MapperConfiguration(cfg => { cfg.AddProfiles(_cmasAssemblies); });
+
+            var builder = new ConfigurationBuilder() 
+                .AddXmlFile("appsettings.xml", optional: false, reloadOnChange: true)
+                .AddXmlFile($"appsettings.{env.EnvironmentName}.xml", optional: true, reloadOnChange: true);
+
+            Configuration = builder.Build();
         }
 
         public static IEnumerable<Assembly> GetReferencingAssemblies(string assemblyName)
@@ -59,6 +68,8 @@ namespace Cmas.Infrastructure.ServicesStartup
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.Configure<CmasConfiguration>(options => Configuration.Bind(options));
+
             var builder = new ContainerBuilder();
 
             foreach (var assembly in _cmasAssemblies)
@@ -106,8 +117,6 @@ namespace Cmas.Infrastructure.ServicesStartup
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
             IApplicationLifetime applicationLifetime)
         {
-            env.EnvironmentName =
-                "Production"; // TODO: настроить конфигурацию и использование EnvironmentName.Production;
 
             loggerFactory.AddNLog();
             loggerFactory.AddConsole(LogLevel.Warning);
