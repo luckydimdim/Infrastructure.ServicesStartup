@@ -93,7 +93,9 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                 var body = BodyToString(request.Body);
 
-                return string.Format("\nRequest: {0}\nHeaders:\n{1}Body:\n{2}", url, headers, body);
+                string delimiter = "\n-------------------------------------------------------------------------------------------\n";
+
+                return delimiter + $"\nRequest: {url}\nHeaders:\n{headers}Body:\n{body}";
             }
             catch (Exception)
             {
@@ -114,7 +116,7 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                 var body = ContentsToString(response.Contents);
 
-                return string.Format("\nResponse: {0}\nHeaders:\n{1}Body:\n{2}", statusCode, headers, body);
+                return $"\nResponse: {statusCode}\nHeaders:\n{headers}Body:\n{body}";
             }
             catch (Exception)
             {
