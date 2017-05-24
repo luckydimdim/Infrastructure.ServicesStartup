@@ -17,9 +17,10 @@ using NLog.Extensions.Logging;
 using NLog.Web;
 using Newtonsoft.Json;
 using Cmas.Infrastructure.ServicesStartup.Serialization;
-using Cmas.Infrastructure.Security; 
+using Cmas.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
 using Cmas.Infrastructure.Configuration;
+using Microsoft.AspNetCore.Http;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -32,13 +33,11 @@ namespace Cmas.Infrastructure.ServicesStartup
 
         public ServicesStartup(IHostingEnvironment env)
         {
-            env.ConfigureNLog("nlog.config");
-
             _cmasAssemblies = GetReferencingAssemblies("Cmas");
 
             _mapperConfiguration = new MapperConfiguration(cfg => { cfg.AddProfiles(_cmasAssemblies); });
 
-            var builder = new ConfigurationBuilder() 
+            var builder = new ConfigurationBuilder()
                 .AddXmlFile("appsettings.xml", optional: false, reloadOnChange: true)
                 .AddXmlFile($"appsettings.{env.EnvironmentName}.xml", optional: true, reloadOnChange: true);
 
@@ -69,6 +68,7 @@ namespace Cmas.Infrastructure.ServicesStartup
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.Configure<CmasConfiguration>(options => Configuration.Bind(options));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             var builder = new ContainerBuilder();
 
@@ -93,20 +93,20 @@ namespace Cmas.Infrastructure.ServicesStartup
             builder.RegisterType<QueryFactory>().As<IQueryFactory>();
 
             builder.RegisterGeneric(typeof(QueryFor<>)).As(typeof(IQueryFor<>));
-            
+
             builder.Register<Func<Type, object>>(c =>
             {
                 var componentContext = c.Resolve<IComponentContext>();
                 return (t) => { return componentContext.Resolve(t); };
             });
 
-            
+
             builder.RegisterType<LoggerFactory>().As<ILoggerFactory>();
 
             builder.Register(sp => _mapperConfiguration.CreateMapper()).As<IMapper>().SingleInstance();
 
             builder.RegisterType<CustomJsonSerializer>().As<JsonSerializer>();
-            
+
             builder.Populate(services);
 
             var container = builder.Build();
@@ -117,11 +117,13 @@ namespace Cmas.Infrastructure.ServicesStartup
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
             IApplicationLifetime applicationLifetime)
         {
-
-            loggerFactory.AddNLog();
             loggerFactory.AddConsole(LogLevel.Warning);
 
             app.AddNLogWeb();
+
+            loggerFactory.AddNLog();
+
+            env.ConfigureNLog("nlog.config");
 
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();

@@ -10,6 +10,8 @@ using Nancy.Responses.Negotiation;
 using Nancy.Authentication.Stateless;
 using Cmas.Infrastructure.Security;
 using Cmas.Infrastructure.Configuration;
+using System.Threading;
+using Microsoft.AspNetCore.Http;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -61,23 +63,23 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                     return userValidator.GetUserFromAccessToken(jwtToken);
                 });
-
+             
             StatelessAuthentication.Enable(pipelines, statelessAuthConfiguration);
 
-            // AfterRequest
-            pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>
-            {
-                enableCORS(ctx.Response);
-                _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
-            });
-
-            // BeforeRequest
+            // BeforeRequest. End
             pipelines.BeforeRequest.AddItemToEndOfPipeline(ctx =>
             {
                 _logger.LogInformation(LoggingHelper.RequestToString(ctx.Request));
                 return null;
             });
 
+            // AfterRequest. End
+            pipelines.AfterRequest.AddItemToEndOfPipeline(ctx =>
+            {
+                enableCORS(ctx.Response);
+                _logger.LogInformation(LoggingHelper.ResponseToString(ctx.Response));
+            });
+              
             // OnError
             pipelines.OnError.AddItemToEndOfPipeline((ctx, exc) =>
             {

@@ -93,9 +93,9 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                 var body = BodyToString(request.Body);
 
-                string delimiter = "\n-------------------------------------------------------------------------------------------\n";
+                //string delimiter = "\n-------------------------------------------------------------------------------------------\n";
 
-                return delimiter + $"\nRequest: {url}\nHeaders:\n{headers}Body:\n{body}";
+                return $"\nRequest: {url}\nHeaders:\n{headers}Body:\n{body}";
             }
             catch (Exception)
             {
