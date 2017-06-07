@@ -31,8 +31,7 @@ namespace Cmas.Infrastructure.ServicesStartup
 
         protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {
-            // No registrations should be performed in here, however you may
-            // resolve things that are needed during application startup.
+            StaticConfiguration.DisableRequestStreamSwitching = true;
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)

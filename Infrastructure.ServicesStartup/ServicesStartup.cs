@@ -21,6 +21,7 @@ using Cmas.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
 using Cmas.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Cmas.Infrastructure.ServicesStartup
 {
@@ -68,6 +69,9 @@ namespace Cmas.Infrastructure.ServicesStartup
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.Configure<CmasConfiguration>(options => Configuration.Bind(options));
+
+            services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 60 * 1000 * 1000);
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             var builder = new ContainerBuilder();
