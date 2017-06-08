@@ -5,6 +5,7 @@ using Nancy;
 using Nancy.Extensions;
 using Nancy.IO;
 using System.IO;
+using System.Net;
 using Nancy.Responses;
 using System.Text.RegularExpressions;
 
@@ -91,11 +92,20 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                 var headers = HeadersToString(request.Headers);
 
-                var body = BodyToString(request.Body);
+                var body = string.Empty;
+
+                if (request.Files.Any())
+                {
+                    body = "some data (output disabled)";
+                }
+                else
+                {
+                    body = BodyToString(request.Body);
+                }
 
                 //string delimiter = "\n-------------------------------------------------------------------------------------------\n";
 
-                return $"\nRequest: {url}\nHeaders:\n{headers}Body:\n{body}";
+                return $"Request: {url}\nHeaders:\n{headers}Body:\n{body}";
             }
             catch (Exception)
             {
@@ -114,14 +124,31 @@ namespace Cmas.Infrastructure.ServicesStartup
 
                 var headers = HeadersToString(response.Headers);
 
-                var body = ContentsToString(response.Contents);
+                var body = response.ContentType;
 
-                return $"\nResponse: {statusCode}\nHeaders:\n{headers}Body:\n{body}";
+                if (contentToLog(response.ContentType))
+                    body = ContentsToString(response.Contents);
+
+                return $"Response: {statusCode}\nHeaders:\n{headers}Body:\n{body}";
             }
             catch (Exception)
             {
                 return string.Empty;
             }
         }
+
+        /// <summary>
+        /// Определяет, можно ли логировать контент запроса/ответа
+        /// </summary>
+        /// <returns></returns>
+        public static bool contentToLog(string contentType)
+        {
+            if (contentType.IndexOf("text", StringComparison.OrdinalIgnoreCase) >=0 || contentType.IndexOf("json", StringComparison.OrdinalIgnoreCase) >=0 )
+                return true;
+
+            return false;
+
+        }
+
     }
 }
