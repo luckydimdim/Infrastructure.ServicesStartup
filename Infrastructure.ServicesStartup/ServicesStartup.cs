@@ -143,6 +143,10 @@ namespace Cmas.Infrastructure.ServicesStartup
 
             _logger = loggerFactory.CreateLogger<ServicesStartup>();
 
+            
+
+            _logger.LogInformation($"EnvironmentName: {env.EnvironmentName}");
+
             applicationLifetime.ApplicationStarted.Register(ApplicationStarted);
             applicationLifetime.ApplicationStopping.Register(ApplicationStopping);
             applicationLifetime.ApplicationStopped.Register(ApplicationStopped);
